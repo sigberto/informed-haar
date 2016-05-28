@@ -57,27 +57,118 @@ class TemplateGenerator():
 
 						# Binary template: set values to 1 and 0 and add template
 						if len(unique) == 2:
-							mat_temp[mat_temp == unique[0]] = 1
-							mat_temp[mat_temp == unique[1]] = 0
-							templates.append((w*cell_size,y*cell_size,size,mat_temp))
+							idx1 = mat_temp == unique[0]
+							idx2 = mat_temp == unique[1]
+							
+							mat_temp[idx1] = 1
+							mat_temp[idx2] = 0
+							templates.append((x,y,size,mat_temp))
 
 						# Ternary template: set values to -1, 0, 1 -- add template -- repeat with all permutations
 						else:
-							mat_temp[mat_temp == unique[0]] = -1
-							mat_temp[mat_temp == unique[1]] = 0
-							mat_temp[mat_temp == unique[2]] = 1
-							templates.append((w*cell_size,y*cell_size,size,mat_temp))
+							# Get unique value indices
+							idx1 = mat_temp == unique[0]
+							idx2 = mat_temp == unique[1]
+							idx3 = mat_temp == unique[2]
+							
+							mat_temp[idx1] = -1
+							mat_temp[idx2] = 0
+							mat_temp[idx3] = 1
+							templates.append((x,y,size,mat_temp))
+							
+							mat_temp[idx1] = 1
+							mat_temp[idx2] = -1
+							mat_temp[idx3] = 0
+							templates.append((x,y,size,mat_temp))
+							
+							mat_temp[idx1] = 0
+							mat_temp[idx2] = 1
+							mat_temp[idx3] = -1
+							templates.append((x,y,size,mat_temp))
 
-							mat_temp[mat_temp == -1] = 0
-							mat_temp[mat_temp == 0] = 1
-							mat_temp[mat_temp == 1] = -1
-							templates.append((w*cell_size,y*cell_size,size,mat_temp))
 
-							mat_temp[mat_temp == -1] = 1
-							mat_temp[mat_temp == 0] = -1
-							mat_temp[mat_temp == 1] = 0
-							templates.append((w*cell_size,y*cell_size,size,mat_temp))
-
-
-		self.templates = templates
+		self.templates = np.asarray(templates, dtype=object)
+		self.remove_duplicates()
+		self.shift_templates()
+		self.normalize_templates()
 		return self.templates
+		
+	def remove_duplicates(self):
+		""" Removes all duplicate templates """
+		
+		to_remove = []
+		
+		# Compare every template against each other
+		for idx, t1 in enumerate(self.templates):
+			for idx2, t2 in enumerate(self.templates[idx+1:]):
+				
+				#If templates at the same x,y coordinate
+				if t1[0] == t2[0] and t1[1] == t2[1]:
+					_, _, size1, W1 = t1
+					_, _, size2, W2 = t2
+					w1, h1 = size1
+					w2, h2 = size2
+					wmax = max([w1,w2])
+					hmax = max([h1,h2])
+
+					#Expand matrices
+					W1p = np.zeros([hmax, wmax])
+					W2p = np.zeros([hmax, wmax])
+					W1p[:h1,:w1] = W1
+					W2p[:h2,:w2] = W2
+					
+					
+					#If matrices subtracted from each other == 0, remove one
+					if np.sum(np.abs(W1p - W2p)) == 0:
+						to_remove.append(idx)
+						break
+				
+		# Get indices for subset of templates     
+		indices = [x for x in range(len(self.templates)) if x not in to_remove]
+		self.templates = self.templates[indices]
+		
+	def shift_templates(self):
+		
+		new_templates = []
+		
+		# Iterate through each template and add new template/shift up, down, left, right one cell if possible.
+		for t in self.templates:
+			x, y, size, W = t
+						
+			if y < self.shape_model.shape[0] - 1:
+				new_templates.append((x,y+1,size,W))
+				
+			if y > 0:
+				new_templates.append((x,y-1,size,W))
+				
+			if x < self.shape_model.shape[1] -1:
+				new_templates.append((x+1,y,size,W))
+				
+			if x > 0:
+				new_templates.append((x-1,y,size,W))
+				
+		new_templates = np.asarray(new_templates, dtype=object)
+		
+		self.templates = np.concatenate((self.templates,new_templates),axis=0)
+		
+	def normalize_templates(self):
+		
+		for idx, t in enumerate(self.templates):
+			
+			x,y,size,W = t
+			
+			W1 = np.copy(W)
+			W2 = np.copy(W)
+			
+			W1[W1 != 1] = 0
+			W2[W2 != -1] = 0
+
+			s1 = np.sum(W1)
+			s2 = np.sum(-W2)
+			
+			if s2:
+				self.templates[idx] = (x,y,size,np.copy(W1/s1 + W2/s2))
+			else:
+				self.templates[idx] = (x,y,size,np.copy(W1/s1))
+
+
