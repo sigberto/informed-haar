@@ -10,14 +10,12 @@ class ChannelFeatures:
     IMG_WIDTH = 60
     H_CELLS = trunc(IMG_HEIGHT/CELL_SIZE)
     W_CELLS = trunc(IMG_WIDTH/CELL_SIZE)
-    N_CHANNELS = 10
+    N_CHANNELS = 11
     NUM_HOG_BINS = 6
 
-    def __init__(self, img):
-        img = imutils.resize(img, width=self.IMG_WIDTH, height=self.IMG_HEIGHT)
-        img = cv2.resize(img, (self.IMG_WIDTH, self.IMG_HEIGHT))
-        self.img = cv2.GaussianBlur(img, ksize=(0, 0), sigmaX=.87)
-        self.feats = np.zeros((self.H_CELLS, self.W_CELLS, self.N_CHANNELS))
+    def __init__(self):
+
+        pass
 
     # @staticmethod
     # def _absmax(x):
@@ -84,7 +82,13 @@ class ChannelFeatures:
         hog_feats = hog.compute(self.img)
         return hog_feats.reshape(self.H_CELLS, self.W_CELLS, self.NUM_HOG_BINS)
 
-    def compute_channels(self):
+    def compute_channels(self, img):
+
+        img = imutils.resize(img, width=self.IMG_WIDTH, height=self.IMG_HEIGHT)
+        img = cv2.resize(img, (self.IMG_WIDTH, self.IMG_HEIGHT))
+        self.img = cv2.GaussianBlur(img, ksize=(0, 0), sigmaX=.87)
+        self.feats = np.zeros((self.H_CELLS, self.W_CELLS, self.N_CHANNELS))
+
         # LUV channels
         luv = self._compute_luv()
 

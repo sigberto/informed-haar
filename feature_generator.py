@@ -2,21 +2,24 @@ import numpy as np
 
 class FeatureGenerator:
 	
-	def __init__(self):
+	def __init__(self, templates):
 		""" 
 			Instantiates feature generator with lists to store feature vectors and corresponding template
 			information for each feature vector
 		"""
+	
+		self.templates = templates
+		self.feature_info = []
 		
+	def generate_features(self, cfeats):
+		""" Generates feature vectors associated with each template """
+
 		self.features = []
 		self.feature_info = []
 		
-	def generate_features(self, templates, cfeats):
-		""" Generates feature vectors associated with each template """
-		
 		_, _, k_channels = cfeats.shape
 
-		for t in templates:
+		for t in self.templates:
 
 			x, y, size, W = t
 			w,h = size
@@ -27,4 +30,4 @@ class FeatureGenerator:
 				self.features.append(np.sum(np.multiply(cell_feats,W)))
 				self.feature_info.append((x,y,size,k))
 				
-		return self.features, self.feature_info
+		return self.features
