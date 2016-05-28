@@ -46,8 +46,8 @@ class TemplateGenerator():
 			h = size[1]
 
 			# Slide template with dimenions specified by size across the entire shape model
-			for y in xrange(self.shape_model.shape[0] - h + 1):
-				for x in xrange(self.shape_model.shape[1] - w + 1):
+			for y in xrange(self.shape_model.shape[0] - h ):
+				for x in xrange(self.shape_model.shape[1] - w ):
 
 					mat_temp = np.copy(self.shape_model[y:y+h, x:x+w])
 					unique = np.unique(mat_temp)
