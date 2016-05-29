@@ -2,3 +2,5 @@
 .DS_Store
 INRIAPerson*
 *.pyc
+train*
+test*
