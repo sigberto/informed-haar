@@ -27,7 +27,7 @@ class Pipeline():
 		self.cf = ChannelFeatures()
 		
 
-	def extract_features(self, dir_info=('train_us', 'pos.lst', 'neg.lst'), file_name=None):
+	def extract_features(self, dir_info=('../train_us', 'pos.lst', 'neg.lst'), file_name=None):
 		""" 
 			Extracts features from directory provided
 
@@ -125,10 +125,10 @@ class Pipeline():
 
 		with open(path.join(base_dir, pos_filename)) as f:
 			pos_list = f.readlines()
-			pos_list = [x.strip() for x in pos_list]
+			pos_list = [base_dir + '/pos/' + x.strip() for x in pos_list]
 		with open(path.join(base_dir, neg_filename)) as f:
 			neg_list = f.readlines()
-			neg_list = [x.strip() for x in neg_list]
+			neg_list = [base_dir + '/neg/' + x.strip() for x in neg_list]
 
 		print 'Loaded {} positive image paths and {} negative image paths'.format(str(len(pos_list)), str(len(neg_list)))
 		return pos_list, neg_list
