@@ -24,7 +24,7 @@ class TemplateGenerator():
 
 
 	def generate_sizes(self, w_max=4, h_max=3):
-		""" Generates set of possible template sizes """
+		""" Generates set of possible template sizes. """
 
 		# Define width and height constraints in terms of cells
 		w_vals = range(1, w_max + 1)
@@ -35,7 +35,18 @@ class TemplateGenerator():
 		self.sizes = sizes[1:]
 
 	def generate_templates(self):
-		""" Generates templates by convolving windows defined by sizes over the shape model """
+		""" 
+			Generates templates by convolving windows defined by sizes over the shape model.
+
+			Template Format:
+
+						(x, y, size, W)
+
+						x: x position of upper left hand corner of template (in terms of cells)
+						y: y position of upper left hand corner of template (in terms of cells)
+						size: (width, height) of template (in terms of cells)
+						W: weight matrix (weights for each cell)
+		"""
 
 		templates = []
 		cell_size = self.cell_size
