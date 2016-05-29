@@ -24,7 +24,7 @@ class Classifier:
 	def top_ft_indices(self, n):
 
 		top_ft = self.clf.feature_importances_.argsort()
-		return top_ft[::-1][:10]
+		return top_ft[::-1][:n] if n else top_ft[::-1]
 
 	def plot_ft_weights(self, file_name):
 

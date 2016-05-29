@@ -102,6 +102,8 @@ class TemplateGenerator():
 		self.remove_duplicates()
 		self.shift_templates()
 		self.normalize_templates()
+
+		print 'Created %d templates' % (len(self.templates))
 		return self.templates
 		
 	def remove_duplicates(self):
