@@ -44,15 +44,17 @@ class ChannelFeatures:
         return feats
 
     def _compute_gradients(self):
-        sobelx64f = cv2.Sobel(self.img, cv2.CV_64F, 1, 0, ksize=5)
+        gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        H, W = gray.shape
+        sobelx64f = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=5)
         abs_sobel64f = np.absolute(sobelx64f)
         sobel_x = np.uint8(abs_sobel64f)
-        sobel_x = self._pool(sobel_x)
+        sobel_x = self._pool(sobel_x.reshape(H, W, 1))
 
-        sobely64f = cv2.Sobel(self.img, cv2.CV_64F, 0, 1, ksize=5)
+        sobely64f = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=5)
         abs_sobel64f = np.absolute(sobely64f)
         sobel_y = np.uint8(abs_sobel64f)
-        sobel_y = self._pool(sobel_y)
+        sobel_y = self._pool(sobel_y.reshape(H, W, 1))
         return np.dstack((sobel_x, sobel_y))
 
     def _reshape_hog_feats(self, linear_hog_feats):
