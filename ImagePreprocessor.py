@@ -23,7 +23,7 @@ class ImagePreprocessor:
             self.dest_train_dir = dest_train_dir
 
         if dest_test_dir is None:
-            self.dest_test_dir = 'INRIAPerson/train_us/'
+            self.dest_test_dir = 'INRIAPerson/test_us/'
         else:
             self.dest_test_dir = dest_test_dir
 
@@ -70,12 +70,13 @@ class ImagePreprocessor:
                 dest = dest.replace('.', '_{}.'.format(str(i)))
                 cv2.imwrite(dest, sub_im)
 
-    def make_result_file_list(self, path, list_name):
+    def make_result_file_list(self, path, subdir, list_name):
         files = []
-        for (_, _, filenames) in os.walk(path):
+        for (_, _, filenames) in os.walk(os.path.join(path, subdir)):
             files.extend(filenames)
             break
-        with open(os.path.join(path, list_name)) as f:
+        files = [file + '\n' for file in files]
+        with open(os.path.join(path, list_name), 'wb') as f:
             f.writelines(files)
 
     def preprocess_images(self):
@@ -97,12 +98,12 @@ class ImagePreprocessor:
             test_neg_list = [x.replace('test', 'test_64x128_H96') for x in test_neg_list]
 
         self.crop_and_save_pos(train_pos_list, is_train=True)
-        self.crop_and_save_pos(test_neg_list, is_train=False)
+        self.crop_and_save_pos(test_pos_list, is_train=False)
         self.crop_and_save_neg(train_neg_list, is_train=True)
         self.crop_and_save_neg(test_neg_list, is_train=False)
 
-        self.make_result_file_list(self.dest_train_dir, 'pos.lst')
-        self.make_result_file_list(self.dest_test_dir, 'pos.lst')
-        self.make_result_file_list(self.dest_train_dir, 'neg.lst')
-        self.make_result_file_list(self.dest_test_dir, 'neg.lst')
+        self.make_result_file_list(self.dest_train_dir, 'pos', 'pos.lst')
+        self.make_result_file_list(self.dest_test_dir, 'pos', 'pos.lst')
+        self.make_result_file_list(self.dest_train_dir, 'neg', 'neg.lst')
+        self.make_result_file_list(self.dest_test_dir, 'neg', 'neg.lst')
 
