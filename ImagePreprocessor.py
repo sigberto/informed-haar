@@ -34,7 +34,7 @@ class ImagePreprocessor:
         self.result_size = (120, 60, 3)
         self.neg_crops_per_neg_image = 4
 
-    def crop_and_save_pos(self, img_paths, is_train):
+    def crop_and_save_pos(self, img_paths, is_train=False):
         if is_train:
             row_offset = trunc((self.train_pos_size[0] - self.result_size[0])/2)
             col_offset = trunc((self.train_pos_size[1] - self.result_size[1])/2)

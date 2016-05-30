@@ -4,6 +4,7 @@ from template_generator import TemplateGenerator
 from ChannelFeatures import ChannelFeatures
 from feature_generator import FeatureGenerator
 from classifier import Classifier
+from detector import Detector
 import cv2
 from os import path
 
@@ -67,7 +68,7 @@ class Pipeline():
 
 		return X, Y 
 
-	def select_top_features(X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
+	def select_top_weights(X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
 		"""
 			Trains boosted trees in order to calculate feature importance and select top num_features
 
@@ -101,9 +102,13 @@ class Pipeline():
 		#=====[ Plot feature weights ]=====
 		clf.plot_ft_weights('feature_weights.png')
 
-		top_indices = clf.top_ft_indices(num_features)
+		weight_indices = clf.top_ft_indices(num_features)
+		weights = self.clf.estimator_weights_[weight_indices]
+		self.detector = Detector(weight_indices, weights)
 
-		return top_indices
+	def detect(self):
+
+		self.detector = Detector(self.weights)
 
 
 	def _get_feature_matrix(self, X, images, offset=0):
