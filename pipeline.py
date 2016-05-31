@@ -19,7 +19,7 @@ class Pipeline():
 
 	"""
 
-	def __init__():
+	def __init__(self):
 		""" Instantiates Pipeline's TemplateGenerator and ChannelFeatures """
 
 		# =====[ Instantiate  ]=====
@@ -44,30 +44,35 @@ class Pipeline():
 		"""
 
 		#=====[ Use TemplateGenerator() to generate templates ]=====
-		self.tg.generate_sizes()
-		self.templates = tg.generate_templates()
+	#	self.tg.generate_sizes()
+	#	self.templates = self.tg.generate_templates()
 
 		#=====[ Instantiate FeatureGenerator ]=====
-		self.fg = FeatureGenerator(self.templates)
+	#	self.fg = FeatureGenerator(self.templates)
 
 		pos_images, neg_images = self._get_image_paths(dir_info[0],dir_info[1],dir_info[2])
 
 		#=====[ Create input matrix ]=====
-		X = np.zeros((len(pos_images) + len(neg_images), len(templates) * cf.N_CHANNELS))
-		X = self._get_feature_matrix(X, pos_images, 0)
-		X = self._get_feature_matrix(X, neg_images, len(pos_images))
+
+		print 'Total images to process: ', len(pos_images) + len(neg_images)
+		#X = np.zeros((len(pos_images) + len(neg_images), len(self.templates) * self.cf.N_CHANNELS))
+		#X = self._get_feature_matrix(X, pos_images, 0)
+		#X = self._get_feature_matrix(X, neg_images, len(pos_images) - 1)
+		X = pickle.load(open('backup_X.p','rb'))
 		print 'Obtained feature matrix with shape {}'.format(str(X.shape))
 
+	#	pickle.dump(X,open('backup_X.p','wb'))
 		#=====[ Create labels ]=====
-		Y = self._make_labels(len(pos_image),len(neg_images))
+		Y = self._make_labels(len(pos_images),len(neg_images))
 
 		#=====[ If user specified a file name to save X, and Y to, pickle objects ]=====
 		if file_name:
 			pickle.dump({'input':X,'labels':Y}, open(file_name, 'wb'))
-
+			print 'Successfully formulated and saved X and Y'
+		
 		return X, Y 
 
-	def select_top_features(X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
+	def select_top_features(self, X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
 		"""
 			Trains boosted trees in order to calculate feature importance and select top num_features
 
@@ -92,6 +97,7 @@ class Pipeline():
 		"""
 
 		self.clf = Classifier(num_estimators, max_depth)
+		print '-----> About to train'
 		self.clf.train(X,Y)
 
 		#=====[ If user specified a model name to save clf, pickle object ]=====
@@ -112,12 +118,19 @@ class Pipeline():
 		# =====[ Iterate through images and calculate feature vector for each ]=====
 		for idx, img in enumerate(images):
 
-			cfeats = cf.compute_channels(cv2.imread(img))
-			feature_vec = fg.generate_features(cfeats)
+			try:
+				cfeats = self.cf.compute_channels(cv2.imread(img))
+				feature_vec = self.fg.generate_features(cfeats)
 
-			# Add feature vector to input matrix
-			X[idx + offset, :] = feature_vec
+				# Add feature vector to input matrix
+				X[idx + offset, :] = feature_vec
+				print 'Successfully added image: ', idx + offset
 
+			except Exception as e:
+				print e
+				print 'Could not add image at index: ', idx + offset
+
+		return X
 
 	# {pos,neg}_filename is a text file with file in the base_dir. They are either 'test_us/...' or 'train_us/...'
 	def _get_image_paths(self, base_dir, pos_filename, neg_filename):
@@ -137,7 +150,7 @@ class Pipeline():
 		""" Takes number of positive and negative images and returns appropriate label vector """
 
 		Y = np.zeros((n_pos + n_neg))
-		Y[:len(n_pos)] = 1
+		Y[:n_pos] = 1
 
 		return Y 
 
