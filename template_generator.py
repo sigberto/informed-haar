@@ -23,7 +23,7 @@ class TemplateGenerator():
 			self.shape_model = shape_model
 
 
-	def generate_sizes(self, w_max=4, h_max=3):
+	def generate_sizes(self, w_max=3, h_max=2):
 		""" Generates set of possible template sizes. """
 
 		# Define width and height constraints in terms of cells
