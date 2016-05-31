@@ -5,10 +5,10 @@ from ChannelFeatures import ChannelFeatures
 # ip = ImagePreprocessor()
 # ip.preprocess_images()
 #
-img = cv2.imread('INRIAPerson/Test/pos/person_and_bike_058.png')
-chnft = ChannelFeatures()
-features = chnft.compute_channels(img, resize=False)
-print features.shape
+# img = cv2.imread('INRIAPerson/Test/pos/person_and_bike_058.png')
+# chnft = ChannelFeatures()
+# features = chnft.compute_channels(img, resize=False)
+# print features.shape
 # print features.shape
 
 # from nms import non_max_suppression
@@ -25,3 +25,9 @@ print features.shape
 #
 # picks = non_max_suppression(dets, 0.3)
 # print picks
+
+from evaluator import Evaluator
+
+evaluator = Evaluator('INRIAPerson/Test', None)
+FPPI, miss_rate = evaluator.evaluate()
+print FPPI, miss_rate
