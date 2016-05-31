@@ -45,24 +45,25 @@ class Pipeline():
 		"""
 
 		#=====[ Use TemplateGenerator() to generate templates ]=====
-	#	self.tg.generate_sizes()
-	#	self.templates = self.tg.generate_templates()
+		self.tg.generate_sizes()
+		self.templates = self.tg.generate_templates()
 
 		#=====[ Instantiate FeatureGenerator ]=====
-	#	self.fg = FeatureGenerator(self.templates)
+		self.fg = FeatureGenerator(self.templates)
 
 		pos_images, neg_images = self._get_image_paths(dir_info[0],dir_info[1],dir_info[2])
 
 		#=====[ Create input matrix ]=====
 
 		print 'Total images to process: ', len(pos_images) + len(neg_images)
-		#X = np.zeros((len(pos_images) + len(neg_images), len(self.templates) * self.cf.N_CHANNELS))
-		#X = self._get_feature_matrix(X, pos_images, 0)
-		#X = self._get_feature_matrix(X, neg_images, len(pos_images) - 1)
-		X = pickle.load(open('backup_X.p','rb'))
+		X = np.zeros((len(pos_images) + len(neg_images), len(self.templates) * self.cf.N_CHANNELS))
+		X = self._get_feature_matrix(X, pos_images, 0)
+		X = self._get_feature_matrix(X, neg_images, len(pos_images) - 1)
+		# X = pickle.load(open('backup_X.p','rb'))
 		print 'Obtained feature matrix with shape {}'.format(str(X.shape))
 
-	#	pickle.dump(X,open('backup_X.p','wb'))
+		pickle.dump(X,open('backup_X.p','wb'))
+		
 		#=====[ Create labels ]=====
 		Y = self._make_labels(len(pos_images),len(neg_images))
 
@@ -106,11 +107,7 @@ class Pipeline():
 			pickle.dump(self.clf,open(model_name,'wb'))
 
 		#=====[ Plot feature weights ]=====
-		clf.plot_ft_weights('feature_weights.png')
-
-		weight_indices = clf.top_ft_indices(num_features)
-		weights = self.clf.estimator_weights_[weight_indices]
-		self.detector = Detector(weight_indices, weights)
+		self.clf.plot_ft_weights('feature_weights.png')
 
 	def detect(self):
 
