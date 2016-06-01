@@ -6,7 +6,8 @@ from ChannelFeatures import ChannelFeatures
 from feature_generator import FeatureGenerator
 import nms
 
-class Detector():
+
+class Detector:
     """ 
         The Detector class is used to detect pedestrians in images by locating bounding boxes with high probabilities
         containing a pedestrian 
@@ -54,12 +55,14 @@ class Detector():
         """
         
         candidate_bbs = self._get_bounding_boxes(img_path)
-        bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.5)
-        return candidate_bbs, bbs
-        
+        bbs = None
+        if len(candidate_bbs) > 1:
+            bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.3)
+        elif len(candidate_bbs) == 0:
+            bbs = candidate_bbs
 
-       
-        
+        return candidate_bbs, bbs
+
     def _get_bounding_boxes(self, img_path, start_h=120, start_w=60):
         """ 
             Returns 2D array of bounding boxes (M bounding boxes x 5 characteristics per bounding box)
@@ -118,7 +121,7 @@ class Detector():
                     count += 1
                     
                     if score > 0.5:
-                        bounding_boxes.append([score, y_pix/scale, x_pix/scale, win_h/scale, win_w/scale])
+                        bounding_boxes.append([score, int(y_pix/scale), int(x_pix/scale), int(win_h/scale), int(win_w/scale)])
 
 
             print 'Went through %d total candidate BBs' %(count)

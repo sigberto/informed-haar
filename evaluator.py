@@ -6,10 +6,10 @@ from detector import Detector
 
 class Evaluator:
 
-    def __init__(self, test_dir, classifier):
+    def __init__(self, test_dir, detector):
         self.min_overlap_area = 0.5
         self.test_dir = test_dir
-        self.classifier = classifier
+        self.detector = detector
         self.img_paths = self.get_paths(os.path.join(test_dir, 'pos.lst'))
         self.img_paths.extend(self.get_paths(os.path.join(test_dir, 'neg.lst')))
         annotation_paths = self.get_paths(os.path.join(test_dir, 'annotations.lst'))
@@ -42,13 +42,19 @@ class Evaluator:
                 w = x2 - x
                 h = y2 - y
                 result[idx, :] = np.asarray([y, x, h, w])
-            self.ground_truths[path] = result
+            img_path = [line for line in lines if 'filename' in line]
+            img_path = 'INRIAPerson/' + img_path[0].split('"')[1]
+            self.ground_truths[img_path] = result
             self.n_ground_truths += len(matches)
 
     def compare(self, bboxes, gtruths):
-        bboxes = bboxes[bboxes[:, 0].argsort()[::-1]]  # sort bboxes by descending order of score
+        if bboxes is None and gtruths is None:
+            return 0, 0
+        if bboxes is None:
+            return 0, len(gtruths)
         if gtruths is None:
             return len(bboxes), 0
+        bboxes = bboxes[bboxes[:, 0].argsort()[::-1]]  # sort bboxes by descending order of score
         n_matches = 0
         matched_gtruth = np.zeros((len(gtruths)))
         matched_bbox = np.zeros((len(bboxes)))
@@ -77,12 +83,32 @@ class Evaluator:
         n_FP = len(bboxes) - n_matches
         return n_FP, n_misses
 
+    def save_image_results(self, img_path, bboxes, gtruths, n_FP, n_misses):
+        if gtruths is None:
+            gtruths_str = ''
+        else:
+            gtruths_str = list(gtruths)
+        if bboxes is None:
+            bboxes_str = ''
+        else:
+            bboxes_str = list(bboxes)
+        txt_file_path = img_path.replace('png', 'txt')
+        txt_file_path = txt_file_path.replace('jpg', 'txt')
+        with open(txt_file_path, 'wb') as f:
+            line = 'bboxes: ' + bboxes_str + \
+                '\ngtruths: ' + gtruths_str + \
+                '\nn_FP: ' + str(n_FP) + \
+                '\nn_misses: ' + str(n_misses)
+            f.write(line)
+
     def evaluate(self):
-        detector = Detector(self.classifier)
         for img_path in self.img_paths:
-            img = cv2.imread(img_path)
-            bboxes = detector.detect_pedestrians(img)
+            print img_path
+            _, bboxes, = self.detector.detect_pedestrians(img_path)
             n_FP, n_misses = self.compare(bboxes, self.ground_truths.get(img_path, None))
+            print 'n_FP: ', n_FP
+            print 'n_misses: ', n_misses
+            self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses)
             self.n_FP += n_FP
             self.n_misses += n_misses
         self.FPPI = 1.0*self.n_FP/len(self.img_paths) # rate of false positives per image
