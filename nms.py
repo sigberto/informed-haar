@@ -27,7 +27,7 @@ def non_max_suppression(boxes, overlapThresh):
 
     # compute the area of the bounding boxes and sort the bounding
     # boxes by the bottom-right y-coordinate of the bounding box
-    area = W*H
+    area = np.multiply(W,H)
     idxs = np.argsort(scores)
 
     # keep looping while some indexes still remain in the indexes
