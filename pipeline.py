@@ -109,9 +109,9 @@ class Pipeline():
 		#=====[ Plot feature weights ]=====
 		self.clf.plot_ft_weights('feature_weights.png')
 
-	def detect(self):
+	def detect(self, clf=None):
 
-		self.detector = Detector(self.weights)
+		pass
 
 
 	def _get_feature_matrix(self, X, images, offset=0):
