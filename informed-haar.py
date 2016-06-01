@@ -27,7 +27,28 @@ from ChannelFeatures import ChannelFeatures
 # print picks
 
 from evaluator import Evaluator
+import numpy as np
+# import re
+# s = 'Bounding box for object 2 "PASperson" (Xmin, Ymin) - (Xmax, Ymax) : (229, 221) - (381, 793)'
+# matches = re.search(r'\(.+\).*\(.+\).*\((\d+) ?, ?(\d+)\).*\((\d+) ?, ?(\d+)\).*', s)
+# print matches.group(1)
+# print matches.group(2)
+# print matches.group(3)
+# print matches.group(4)
+
+bboxes = np.asarray([
+    #[score, y, x, h, w]
+    [0.9, 5, 0, 30, 30],
+])
+
+print bboxes[bboxes[:, 0].argsort()[::-1]]
+
+gtruths = np.asarray([
+    [5, 0, 30, 30],
+    [0, 0, 30, 30],
+])
+
 
 evaluator = Evaluator('INRIAPerson/Test', None)
-FPPI, miss_rate = evaluator.evaluate()
+FPPI, miss_rate = evaluator.compare(bboxes, gtruths)
 print FPPI, miss_rate
