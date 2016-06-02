@@ -85,7 +85,6 @@ class Detector:
         win_h, win_w = self.window_size
 
         count = 0
-        print self.scaling_iters
         
         #=====[ Collect bounding boxes for each scaling iteration ]=====
         for it_num in range(1, self.scaling_iters + 1):
@@ -101,9 +100,6 @@ class Detector:
             
             cfeats = self.cf.compute_channels(img)
             
-            print "height:", height, "    width:", width
-            print y_range, x_range
-
             #=====[ Slide window across entirety of image and calculate bounding box at each step ]=====
             for y in range(y_range):
                 for x in range(x_range):
@@ -115,7 +111,7 @@ class Detector:
                     feature_vec = np.asarray(self.fg.generate_features(cfeats[y:y+win_h,x:x+win_w]))
                     
                     score = self.clf.predict_proba([feature_vec])[0,1]
-
+		    #score = 1
                     #=====[ Scale and store bounding box ]=====
                     scale = self.scaling_factor*it_num if it_num else 1
                     count += 1

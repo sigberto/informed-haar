@@ -1,3 +1,4 @@
+import sys
 import os
 import re
 import cv2
@@ -81,7 +82,7 @@ class Evaluator:
                 matched_bbox[highest_overlap_pair[1]] = 1
         n_misses = len(gtruths) - n_matches
         n_FP = len(bboxes) - n_matches
-        return n_FP, n_misses
+        return n_FP, n_misses, n_matches
 
     def save_image_results(self, img_path, bboxes, gtruths, n_FP, n_misses):
         if gtruths is None:
@@ -95,24 +96,44 @@ class Evaluator:
         txt_file_path = img_path.replace('png', 'txt')
         txt_file_path = txt_file_path.replace('jpg', 'txt')
         with open(txt_file_path, 'wb') as f:
-            line = 'bboxes: ' + bboxes_str + \
-                '\ngtruths: ' + gtruths_str + \
-                '\nn_FP: ' + str(n_FP) + \
-                '\nn_misses: ' + str(n_misses)
-            f.write(line)
+		try:
+
+			line = 'bboxes: ' + ', '.join([x.tostring() for x in bboxes_str]) + \
+                		'\ngtruths: ' + ' '.join([x.tostring() for x in gtruths_str]) + \
+                		'\nn_FP: ' + str(n_FP) + \
+                		'\nn_misses: ' + str(n_misses)
+            		f.write(line)
+		except Exception as e:
+			print e
+			#	print 'bboxes: ' + str(bboxes_str) 
+	
 
     def evaluate(self):
-        for img_path in self.img_paths:
-            print img_path
-            _, bboxes, = self.detector.detect_pedestrians(img_path)
-            n_FP, n_misses = self.compare(bboxes, self.ground_truths.get(img_path, None))
-            print 'n_FP: ', n_FP
-            print 'n_misses: ', n_misses
-            self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses)
-            self.n_FP += n_FP
-            self.n_misses += n_misses
-        self.FPPI = 1.0*self.n_FP/len(self.img_paths) # rate of false positives per image
+	matches = []
+        for idx, img_path in enumerate(self.img_paths):
+	    try:
+		print '-----> Processing img: ', idx
+            	_, bboxes, = self.detector.detect_pedestrians(img_path)
+		n_FP, n_misses, n_matches = self.compare(bboxes, self.ground_truths.get(img_path, None))
+		matches.append(n_matches)
+		print 'n_Match: ', n_matches
+		print 'n_FP: ', n_FP
+            	print 'n_misses: ', n_misses
+            	self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses)
+            	self.n_FP += n_FP
+            	self.n_misses += n_misses
+            	print 'Finished processing img: %d/%d' % (idx+1, len(self.img_paths))
+	    except KeyboardInterrupt:
+		print 'FPPI: ', self.n_FP
+		print 'Misses: ', self.n_misses
+		print 'Total Matches: ', sum(matches)
+		print '%d/%d images processed' % (idx+1, len(self.img_paths))
+		print 'Matches: ', matches
+		sys.exit() 
+	self.FPPI = 1.0*self.n_FP/len(self.img_paths) # rate of false positives per image
         self.miss_rate = 1.0*self.n_misses/self.n_ground_truths
+	print 'FPPI: ',self.FPPI
+	print 'Miss Rate: ', self.miss_rate
         return self.FPPI, self.miss_rate
 
 
