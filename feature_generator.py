@@ -25,11 +25,11 @@ class FeatureGenerator:
             w, h = size
 
             for k in range(k_channels):
-                cell_feats = np.copy(cfeats[y:y + h, x:x + w, k])
+                cell_feats = cfeats[y:y + h, x:x + w, k]
                 self.features.append(np.sum(np.multiply(cell_feats, W)))
-                self.feature_info.append((x, y, size, k))
+                # self.feature_info.append((x, y, size, k))
 
-            if indx + 1 % 100 == 0:
-                print 'Computed features for {} templates'.format(indx)
+            # if indx + 1 % 100 == 0:
+            #     print 'Computed features for {} templates'.format(indx)
 
         return self.features

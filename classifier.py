@@ -2,17 +2,27 @@ from sklearn.cross_validation import cross_val_score
 from sklearn.datasets import load_iris
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier as DTF
+from sklearn.metrics imoprt accuracy_score
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pickle
 import numpy as np
+import cv2
+import imutils
+from ChannelFeatures import ChannelFeatures
+from feature_generator import FeatureGenerator
 
 class Classifier:
 
-	def __init__(self, n_estimators, max_depth):
+	def __init__(self, n_estimators=None, max_depth=None, clf=None):
 		""" Instantiates adaboost classifier """
 
-		self.clf = AdaBoostClassifier(base_estimator=DTF(max_depth=2), n_estimators=n_estimators)
+		#=====[ loading pretrained classifier object ]=====
+		if clf:
+			self.clf = pickle.load(open('../BoostedTreeclassifier.p','rb'))
+		else:
+		#=====[ Initialize new classifier ]=====
+			self.clf = AdaBoostClassifier(base_estimator=DTF(max_depth=2), n_estimators=n_estimators)
 
 	def train(self, X,Y):
 		""" Trains classifier and prints average cross validation score """
@@ -52,5 +62,50 @@ class Classifier:
 
 		plt.colorbar(im, cax=cax)
 		plt.savefig(file_name)
+
+	def predict(self, img_paths): 
+		""" 
+			Tests classifier against given image img_paths
+
+			1) Generates templates
+			2) Extracts channel features
+			3) Genereates feature vectors
+			4) classifies image 
+		"""
+	
+		#=====[ Generate templates ]=====		
+		tg = TemplateGenerator()
+		tg.generate_sizes()
+		templates = tg.generate_templates()
+
+		#=====[ Instantiate FeatureGenerator ]=====
+		fg = FeatureGenerator(templates)
+		
+		#=====[ Will hold our generated feature vectors ]=====
+		feature_vectors = []
+		
+		for img_path in img_paths:
+			img = cv2.imread(img_path)
+
+			#=====[ Extract channel features from images and make feature vector ]=====
+			cfeats = cf.compute_channels(img)
+			feature_vectors.append(fg.generate_features(cfeats))
+
+		#=====[ predict class for each feature_vector ]=====
+		ys = self.clf.predict(feature_vectors)
+
+		return ys
+
+	def test(self, img_paths, Y):
+		""" 
+			Test accuracy against provided image paths and Y.
+		"""
+			ys = self.predict(img_paths)
+
+			accuracy = accuracy_score(Y, ys)
+			return accuracy
+
+
+
 
 

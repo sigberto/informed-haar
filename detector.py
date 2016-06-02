@@ -54,7 +54,7 @@ class Detector():
         """
         
         candidate_bbs = self._get_bounding_boxes(img_path)
-        bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.5)
+        bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.3)
         return candidate_bbs, bbs
         
 
@@ -85,7 +85,7 @@ class Detector():
         print self.scaling_iters
         
         #=====[ Collect bounding boxes for each scaling iteration ]=====
-        for it_num in range(1, self.scaling_iters + 1):
+        for it_num in range(self.scaling_iters):
 
             #=====[ Scale image if not on first iteration ]=====
             if it_num > 0:

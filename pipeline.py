@@ -74,7 +74,7 @@ class Pipeline():
 		
 		return X, Y 
 
-	def select_top_weights(X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
+	def select_top_weights(self, X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
 		"""
 			Trains boosted trees in order to calculate feature importance and select top num_features
 
