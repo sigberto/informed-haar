@@ -45,8 +45,10 @@ class Pipeline():
 
 		"""
 
-		if not templates:
+		if not self.templates:
 			#=====[ Use TemplateGenerator() to generate templates ]=====
+			print '-----> No templates found. Regenerating'
+			
 			self.tg.generate_sizes()
 			self.templates = self.tg.generate_templates()
 
