@@ -1,8 +1,7 @@
-from sklearn.cross_validation import cross_val_score
 from sklearn.datasets import load_iris
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier as DTF
-from sklearn.metrics imoprt accuracy_score
+from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pickle
@@ -11,6 +10,7 @@ import cv2
 import imutils
 from ChannelFeatures import ChannelFeatures
 from feature_generator import FeatureGenerator
+from template_generator import TemplateGenerator
 
 class Classifier:
 
@@ -19,7 +19,8 @@ class Classifier:
 
 		#=====[ loading pretrained classifier object ]=====
 		if clf:
-			self.clf = pickle.load(open('../BoostedTreeclassifier.p','rb'))
+			self.clf = pickle.load(open('BoostedTreeclassifier_small.p','rb')).clf
+			print self.clf
 		else:
 		#=====[ Initialize new classifier ]=====
 			self.clf = AdaBoostClassifier(base_estimator=DTF(max_depth=2), n_estimators=n_estimators)
@@ -75,8 +76,9 @@ class Classifier:
 	
 		#=====[ Generate templates ]=====		
 		tg = TemplateGenerator()
-		tg.generate_sizes()
+		tg.generate_sizes(w_max=3,h_max=2)
 		templates = tg.generate_templates()
+		cf = ChannelFeatures()
 
 		#=====[ Instantiate FeatureGenerator ]=====
 		fg = FeatureGenerator(templates)
@@ -84,12 +86,17 @@ class Classifier:
 		#=====[ Will hold our generated feature vectors ]=====
 		feature_vectors = []
 		
-		for img_path in img_paths:
+		print '-----> Testing %d total images' % (len(img_paths))
+		for idx, img_path in enumerate(img_paths):
 			img = cv2.imread(img_path)
-
 			#=====[ Extract channel features from images and make feature vector ]=====
 			cfeats = cf.compute_channels(img)
 			feature_vectors.append(fg.generate_features(cfeats))
+
+			if idx % 100 == 0:
+				print '-----> Processing Image ', idx + 1
+		
+		print '-----> Processed all feature vectors'		
 
 		#=====[ predict class for each feature_vector ]=====
 		ys = self.clf.predict(feature_vectors)
@@ -100,10 +107,10 @@ class Classifier:
 		""" 
 			Test accuracy against provided image paths and Y.
 		"""
-			ys = self.predict(img_paths)
+		ys = self.predict(img_paths)
 
-			accuracy = accuracy_score(Y, ys)
-			return accuracy
+		accuracy = accuracy_score(Y, ys)
+		return accuracy
 
 
 
