@@ -20,12 +20,13 @@ class Pipeline():
 
 	"""
 
-	def __init__(self):
+	def __init__(self, templates=None):
 		""" Instantiates Pipeline's TemplateGenerator and ChannelFeatures """
 
 		# =====[ Instantiate  ]=====
 		self.tg = TemplateGenerator()
 		self.cf = ChannelFeatures()
+		self.templates = templates
 		
 
 	def extract_features(self, dir_info=('../train_us', 'pos.lst', 'neg.lst'), file_name=None):
@@ -44,9 +45,10 @@ class Pipeline():
 
 		"""
 
-		#=====[ Use TemplateGenerator() to generate templates ]=====
-		self.tg.generate_sizes()
-		self.templates = self.tg.generate_templates()
+		if not templates:
+			#=====[ Use TemplateGenerator() to generate templates ]=====
+			self.tg.generate_sizes()
+			self.templates = self.tg.generate_templates()
 
 		#=====[ Instantiate FeatureGenerator ]=====
 		self.fg = FeatureGenerator(self.templates)
@@ -62,7 +64,7 @@ class Pipeline():
 		# X = pickle.load(open('backup_X.p','rb'))
 		print 'Obtained feature matrix with shape {}'.format(str(X.shape))
 
-		pickle.dump(X,open('backup_X.p','wb'))
+		pickle.dump(X,open('backup_X_opt.p','wb'))
 		
 		#=====[ Create labels ]=====
 		Y = self._make_labels(len(pos_images),len(neg_images))
@@ -74,7 +76,7 @@ class Pipeline():
 		
 		return X, Y 
 
-	def select_top_weights(self, X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
+	def train(self, X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
 		"""
 			Trains boosted trees in order to calculate feature importance and select top num_features
 
@@ -107,7 +109,7 @@ class Pipeline():
 			pickle.dump(self.clf,open(model_name,'wb'))
 
 		#=====[ Plot feature weights ]=====
-		self.clf.plot_ft_weights('feature_weights.png')
+		# self.clf.plot_ft_weights('feature_weights.png')
 
 	def detect(self, clf=None):
 

@@ -15,21 +15,14 @@ class FeatureGenerator:
         """ Generates feature vectors associated with each template """
 
         self.features = []
-        self.feature_info = []
-
-        _, _, k_channels = cfeats.shape
 
         for indx, t in enumerate(self.templates):
 
-            x, y, size, W = t
+            x, y, size, W = t[1]
             w, h = size
+            k = t[0]
 
-            for k in range(k_channels):
-                cell_feats = cfeats[y:y + h, x:x + w, k]
-                self.features.append(np.sum(np.multiply(cell_feats, W)))
-                # self.feature_info.append((x, y, size, k))
-
-            # if indx + 1 % 100 == 0:
-            #     print 'Computed features for {} templates'.format(indx)
+            cell_feats = cfeats[y:y + h, x:x + w, k]
+            self.features.append(np.sum(np.multiply(cell_feats, W)))            
 
         return self.features
