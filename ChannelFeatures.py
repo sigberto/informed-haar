@@ -33,8 +33,9 @@ class ChannelFeatures:
             h_offset = i*self.CELL_SIZE
             for j in xrange(W_cells-1):
                 w_offset = j*self.CELL_SIZE
-                subluv = vol[h_offset:h_offset + self.CELL_SIZE, w_offset:w_offset + self.CELL_SIZE, :]
-                feats[i, j, :] = np.sum(subluv)
+	        subluv = vol[h_offset:h_offset + self.CELL_SIZE, w_offset:w_offset + self.CELL_SIZE, :]
+		feats[i, j, :] = np.sum(subluv)
+			
         return feats
 
     def _compute_luv(self, img, H_cells, W_cells):

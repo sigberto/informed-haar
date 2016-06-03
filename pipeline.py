@@ -60,7 +60,7 @@ class Pipeline():
 		#=====[ Create input matrix ]=====
 
 		print 'Total images to process: ', len(pos_images) + len(neg_images)
-		X = np.zeros((len(pos_images) + len(neg_images), len(self.templates) * self.cf.N_CHANNELS))
+		X = np.zeros((len(pos_images) + len(neg_images), len(self.templates)))
 		X = self._get_feature_matrix(X, pos_images, 0)
 		X = self._get_feature_matrix(X, neg_images, len(pos_images) - 1)
 		# X = pickle.load(open('backup_X.p','rb'))
@@ -127,7 +127,6 @@ class Pipeline():
 			try:
 				cfeats = self.cf.compute_channels(cv2.imread(img))
 				feature_vec = self.fg.generate_features(cfeats)
-
 				# Add feature vector to input matrix
 				X[idx + offset, :] = feature_vec
 				print 'Successfully added image: ', idx + offset

@@ -17,11 +17,17 @@ class FeatureGenerator:
         self.features = []
 
         for indx, t in enumerate(self.templates):
-
-            x, y, size, W = t[1]
-            w, h = size
-            k = t[0]
-
+	    try:
+	    	temp = t[0]
+           	x = temp[0]
+	 	y = temp[1]
+	    	size  = temp[2] 
+	    	W = temp[3]
+            	w, h = size
+            	k = t[1]
+	    except Exception as e:
+		print e
+		print 'template: ', t
             cell_feats = cfeats[y:y + h, x:x + w, k]
             self.features.append(np.sum(np.multiply(cell_feats, W)))            
 
