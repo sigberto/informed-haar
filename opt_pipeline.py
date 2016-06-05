@@ -2,12 +2,13 @@ import numpy as np
 import pickle
 from template_generator import TemplateGenerator
 from ChannelFeatures import ChannelFeatures
-from feature_generator import FeatureGenerator
+from opt_feature_generator import FeatureGenerator
 # from classifier import Classifier
 from detector import Detector
 from evaluator import Evaluator
 import cv2
 from os import path
+
 
 class Pipeline:
     """
@@ -74,46 +75,44 @@ class Pipeline:
 
         return X, Y
 
-    def select_top_weights(self, X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
-        """
-            Trains boosted trees in order to calculate feature importance and select top num_features
-    
-            1) Instantiate classifier
-            2) Train classifier
-            3) Save classifier
-            4) Visualize feature weights
-            5) Return indices of features with highest importance
-    
-            Input: X, Y, num_features, num_estimators, max_depth, model_name
-    
-            - X: Input matrix (M training examples x N features)
-            - Y: Labels corresponding to M training examples
-    
-            - num_features: number of indices to return for the top features. if no number specified, returns entire list of indices
-            - num_estimators: number of estimators to use for training
-            - maximum depth for each of the estimators
-            - model_name: string of name of the file to pickle the model to
-    
-            Output: list of num_features indices for the most important features
-    
-        """
-    
-        self.clf = Classifier(num_estimators, max_depth)
-        print '-----> About to train'
-        self.clf.train(X, Y)
-    
-        # =====[ If user specified a model name to save clf, pickle object ]=====
-        if model_name:
-            pickle.dump(self.clf, open(model_name, 'wb'))
-    
-        # =====[ Plot feature weights ]=====
-        self.clf.plot_ft_weights('feature_weights.png')
+    # def select_top_weights(self, X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
+    #     """
+    #         Trains boosted trees in order to calculate feature importance and select top num_features
+    #
+    #         1) Instantiate classifier
+    #         2) Train classifier
+    #         3) Save classifier
+    #         4) Visualize feature weights
+    #         5) Return indices of features with highest importance
+    #
+    #         Input: X, Y, num_features, num_estimators, max_depth, model_name
+    #
+    #         - X: Input matrix (M training examples x N features)
+    #         - Y: Labels corresponding to M training examples
+    #
+    #         - num_features: number of indices to return for the top features. if no number specified, returns entire list of indices
+    #         - num_estimators: number of estimators to use for training
+    #         - maximum depth for each of the estimators
+    #         - model_name: string of name of the file to pickle the model to
+    #
+    #         Output: list of num_features indices for the most important features
+    #
+    #     """
+    #
+    #     self.clf = Classifier(num_estimators, max_depth)
+    #     print '-----> About to train'
+    #     self.clf.train(X, Y)
+    #
+    #     # =====[ If user specified a model name to save clf, pickle object ]=====
+    #     if model_name:
+    #         pickle.dump(self.clf, open(model_name, 'wb'))
+    #
+    #     # =====[ Plot feature weights ]=====
+    #     self.clf.plot_ft_weights('feature_weights.png')
 
     def detect(self, clf=None):
-        clf = pickle.load(open('BoostedTreeclassifier_small.p', 'r'))
-        tg = TemplateGenerator()
-        tg.generate_sizes(w_max=3, h_max=2)
-        templates = tg.generate_templates()
+        clf = pickle.load(open('top_ft_classifier_800', 'r'))
+        templates = pickle.load(open('top_templates_1000.p','r'))
         fg = FeatureGenerator(templates)
         self.detector = Detector(clf.clf, fg)
         evaluator = Evaluator('INRIAPerson/Test', self.detector)

@@ -6,7 +6,8 @@ from ChannelFeatures import ChannelFeatures
 from feature_generator import FeatureGenerator
 import nms
 
-class Detector():
+
+class Detector:
     """ 
         The Detector class is used to detect pedestrians in images by locating bounding boxes with high probabilities
         containing a pedestrian 
@@ -54,12 +55,14 @@ class Detector():
         """
         
         candidate_bbs = self._get_bounding_boxes(img_path)
-        bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.3)
-        return candidate_bbs, bbs
-        
+        bbs = None
+        if len(candidate_bbs) > 1:
+            bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.5)
+        elif len(candidate_bbs) == 0:
+            bbs = candidate_bbs
 
-       
-        
+        return candidate_bbs, bbs
+
     def _get_bounding_boxes(self, img_path, start_h=120, start_w=60):
         """ 
             Returns 2D array of bounding boxes (M bounding boxes x 5 characteristics per bounding box)
@@ -69,20 +72,19 @@ class Detector():
     
         
         img = cv2.imread(img_path)
-        oheight, owidth, channels = img.shape
+        raw_height, raw_width, channels = img.shape
 
-        if oheight/start_h > owidth/start_w:
+        if raw_height/start_h > raw_width/start_w:
             img = imutils.resize(img, width=min(start_w,img.shape[1]))
         else:
             img = imutils.resize(img, height=min(start_h,img.shape[0]))
             
         cv2.imwrite('resized_img.jpeg',img)
-        
+
         oheight, owidth, channels = img.shape
         win_h, win_w = self.window_size
 
         count = 0
-        print self.scaling_iters
         
         #=====[ Collect bounding boxes for each scaling iteration ]=====
         for it_num in range(self.scaling_iters):
@@ -98,9 +100,6 @@ class Detector():
             
             cfeats = self.cf.compute_channels(img)
             
-            print "height:", height, "    width:", width
-            print y_range, x_range
-
             #=====[ Slide window across entirety of image and calculate bounding box at each step ]=====
             for y in range(y_range):
                 for x in range(x_range):
@@ -112,13 +111,15 @@ class Detector():
                     feature_vec = np.asarray(self.fg.generate_features(cfeats[y:y+win_h,x:x+win_w]))
                     
                     score = self.clf.predict_proba([feature_vec])[0,1]
-
+		    #score = 1
                     #=====[ Scale and store bounding box ]=====
                     scale = self.scaling_factor*it_num if it_num else 1
+		   
+		    scale *= float(oheight)/raw_height
                     count += 1
                     
                     if score > 0.5:
-                        bounding_boxes.append([score, y_pix/scale, x_pix/scale, win_h/scale, win_w/scale])
+                        bounding_boxes.append([score, int(y_pix/scale), int(x_pix/scale), int(win_h/scale), int(win_w/scale)])
 
 
             print 'Went through %d total candidate BBs' %(count)
