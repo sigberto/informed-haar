@@ -1,0 +1,23 @@
+STATS:
+
+1. Full feature vectors
+Classifier: BoostedTreeclassifier_small.p
+Outputs: overwritten
+
+13 images
+CFPPI:  161
+Misses:  10
+Total Matches:  4
+14/741 images processed
+Matches:  [1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+
+
+2. Top 1000 feature_vectors
+Classifier: top_ft_classifier_1000
+Outputs: file_name.txt
+
+
+3. Top 100 feature_vectors [CURRENT]
+Classifier: 
+Outputs: file_name.txt
+
