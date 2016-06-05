@@ -12,4 +12,6 @@ pipe = Pipeline()
 #Y = data['labels']
 
 #pipe.train(X, Y, num_estimators=200, max_depth=3, model_name=model_file)
-pipe.detect('top_1000_',offset=0, scaling_factor=1.2, scaling_iters=3, nms=0.5,clf=model_file)
+#pipe.detect('top_1000_',offset=0, scaling_factor=1.2, scaling_iters=3, nms=0.5,clf=model_file)
+
+pipe.get_stats(output_file_prefix='', num_images=None)

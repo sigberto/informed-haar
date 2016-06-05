@@ -7,7 +7,7 @@ from detector import Detector
 
 class Evaluator:
 
-    def __init__(self, test_dir, detector):
+    def __init__(self, test_dir, detector=None):
         self.min_overlap_area = 0.5
         self.test_dir = test_dir
         self.detector = detector
@@ -95,52 +95,115 @@ class Evaluator:
             bboxes_str = list(bboxes)
         txt_file_path = img_path.replace('png', 'txt')
         txt_file_path = txt_file_path.replace('jpg', 'txt')
-	index = 21
-	txt_file_path = txt_file_path[:index] + prefix + txt_file_path[index:]
-	print 'Saving image at: ', txt_file_path
-        with open(txt_file_path, 'wb') as f:
-		try:
-			line = 'bboxes: ' + ', '.join(['; '.join([str(y) for y in x]) for x in bboxes_str]) + \
-                		'\ngtruths: ' + ' '.join(['; '.join([str(y) for y in x]) for x in gtruths_str]) + \
-                		'\nn_FP: ' + str(n_FP) + \
-                		'\nn_misses: ' + str(n_misses)
-            		f.write(line)
-		except Exception as e:
-			line = 'did not work'
-			f.write(line)
-			print e
-			#	print 'bboxes: ' + str(bboxes_str) 
-	
+
+        #=====[ Hard coded index for image path start ]=====
+        index = 21
+        txt_file_path = txt_file_path[:index] + prefix + txt_file_path[index:]
+        print 'Saving image at: ', txt_file_path
+            with open(txt_file_path, 'wb') as f:
+            try:
+                line = 'bboxes: ' + ', '.join(['; '.join([str(y) for y in x]) for x in bboxes_str]) + \
+                            '\ngtruths: ' + ' '.join(['; '.join([str(y) for y in x]) for x in gtruths_str]) + \
+                            '\nn_FP: ' + str(n_FP) + \
+                            '\nn_misses: ' + str(n_misses)
+                        f.write(line)
+            except Exception as e:
+                line = 'did not work'
+                f.write(line)
+                print e
+                #   print 'bboxes: ' + str(bboxes_str) 
+    
 
     def evaluate(self, path_prefix='', offset=0):
-	matches = []
+        matches = []
         for idx, img_path in enumerate(self.img_paths[offset:]):
-	    try:
-		print '-----> Processing img: ',offset +idx + 1,' path:',img_path
-            	_, bboxes, = self.detector.detect_pedestrians(img_path)
-		n_FP, n_misses, n_matches = self.compare(bboxes, self.ground_truths.get(img_path, None))
-		matches.append(n_matches)
-		print 'n_Match: ', n_matches
-		print 'n_FP: ', n_FP
-            	print 'n_misses: ', n_misses
-            	self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses, prefix=path_prefix, offset=offset)
-            	self.n_FP += n_FP
-            	self.n_misses += n_misses
-            	print 'Finished processing img: %d/%d' % (idx+offset+1, len(self.img_paths))
-	    except KeyboardInterrupt:
-		print 'FPPI: ', self.n_FP
-		print 'Misses: ', self.n_misses
-		print 'Total Matches: ', sum(matches)
-		print '%d/%d images processed' % (idx+offset+1, len(self.img_paths))
-		print 'Matches: ', matches
-		sys.exit()
-	    except Exception as e:
-		print e
-		print 'Could not Process image: ', idx + 1 
-	self.FPPI = 1.0*self.n_FP/len(self.img_paths) # rate of false positives per image
+            try:
+            print '-----> Processing img: ',offset +idx + 1,' path:',img_path
+                    _, bboxes, = self.detector.detect_pedestrians(img_path)
+            n_FP, n_misses, n_matches = self.compare(bboxes, self.ground_truths.get(img_path, None))
+            matches.append(n_matches)
+            print 'n_Match: ', n_matches
+            print 'n_FP: ', n_FP
+                    print 'n_misses: ', n_misses
+                    self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses, prefix=path_prefix, offset=offset)
+                    self.n_FP += n_FP
+                    self.n_misses += n_misses
+                    print 'Finished processing img: %d/%d' % (idx+offset+1, len(self.img_paths))
+            except KeyboardInterrupt:
+            print 'FPPI: ', self.n_FP
+            print 'Misses: ', self.n_misses
+            print 'Total Matches: ', sum(matches)
+            print '%d/%d images processed' % (idx+offset+1, len(self.img_paths))
+            print 'Matches: ', matches
+            sys.exit()
+            except Exception as e:
+            print e
+            print 'Could not Process image: ', offset +idx + 1 
+        self.FPPI = 1.0*self.n_FP/len(self.img_paths) # rate of false positives per image
         self.miss_rate = 1.0*self.n_misses/self.n_ground_truths
-	print 'FPPI: ',self.FPPI
-	print 'Miss Rate: ', self.miss_rate
+        print 'FPPI: ',self.FPPI
+        print 'Miss Rate: ', self.miss_rate
         return self.FPPI, self.miss_rate
+
+
+
+    def aggregate_stats(self, path_prefix='', num_images=None):
+        """ Aggregates stats for an experiment for num_images """
+
+        #=====[ If num_images not specified, set to length of the number of paths ]=====
+        num_images = num_images if num_images else len(self.img_paths)
+
+        num_processed = 0
+        
+        for idx, img_path in enumerate(self.img_paths[:num_images]):
+
+            added = False
+
+            #=====[ Formulate new image path based on prefix ]=====
+            txt_file_path = img_path.replace('png', 'txt')
+            txt_file_path = txt_file_path.replace('jpg', 'txt')
+            index = 21 # Hard coded index for directory to image paths
+            txt_file_path = txt_file_path[:index] + path_prefix + txt_file_path[index:]
+
+            #=====[ Read lines from stat file ]=====
+            with open(text_file_path, 'r') as to_read:
+                lines = to_read.readlines()
+
+            #=====[ Iterate through lines and pull appropriate stat from each ]=====
+            for line in lines:
+
+                try:
+
+                    #=====[ Calculates number of people in frame by looking at the numger of ground truth bounding boxes
+                    #=====[ Takes total numbers in ground truth line and divides by 4 (4 parameters for each bounding box)
+                    if 'g_truths:' in line:
+                        num_people = len(re.split(' |;',line[len('g_truths:')]))/4
+                    
+                    if 'n_FP:' in line:
+                        num_FP = int(line[len('n_FP:')].strip())
+
+                    if 'n_misses:' in line:
+                        num_misses = int(line[len('n_misses:')].strip())
+                        num_processed += 1
+                        added = True
+
+                except Exception as e:
+
+                    #=====[ Decrement our counter if we had wrongfully incremented it after encountering 'num_misses' in a line ]=====
+                    num_processed -= 1 if added else 0
+
+                    print e
+                    print '-----> Could not aggregate image: ', idx + 1
+
+
+            return (num_people, num_people - num_misses, num_misses, num_FP, num_processed)
+
+
+
+
+
+
+
+
 
 

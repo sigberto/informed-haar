@@ -139,6 +139,24 @@ class Pipeline:
 
         print 'FPPI: {}\nMiss rate: {}'.format(FPPI, miss_rate)
 
+    def get_stats(self, path_prefix='', num_images=None):
+        """ Reports number of people, matches, misses, and false positives per experiment """
+
+        #=====[ Instantiate our evaluator ]=====
+        evaluator = Evaluator('INRIAPerson/Test')
+
+        num_people, num_hits, num_misses, num_FP, num_processed = evaluator.aggregate_stats(path_prefix, num_images):
+
+        print '-----> Stats for ' + path_prefix + ' ( ' + str(num_processed) + '/' + str(num_images) +' processed) :\n\n'
+        print 'Miss Rate: ' + str(float(num_misses)/num_people)
+        print 'False Positives: ' + str(num_FP)
+        print 'Hits: ' + str(num_hits) + '\n'
+        print 'Misses: ' + str(num_misses) + '\n'
+        print 'Total People: ' + str(num_people) + '\n'
+
+
+
+
     def _get_feature_matrix(self, X, images, offset=0):
         """ Append feature vectors for each training example in images to X """
 
