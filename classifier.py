@@ -15,16 +15,15 @@ from template_generator import TemplateGenerator
 
 class Classifier:
 
-	def __init__(self, n_estimators=None, max_depth=None, clf=None):
-		""" Instantiates adaboost classifier """
-
-		#=====[ loading pretrained classifier object ]=====
-		if clf:
-			self.clf = pickle.load(open('BoostedTreeclassifier_small.p','rb')).clf
-			print self.clf
-		else:
-		#=====[ Initialize new classifier ]=====
-			self.clf = AdaBoostClassifier(base_estimator=DTF(max_depth=2), n_estimators=n_estimators)
+    def __init__(self, n_estimators=None, max_depth=None, clf=None):
+        """ Instantiates adaboost classifier """
+        #=====[ loading pretrained classifier object ]=====
+        if clf:
+	    self.clf = pickle.load(open('BoostedTreeclassifier_small.p','rb')).clf
+	    print self.clf
+        else:
+        #=====[ Initialize new classifier ]=====
+            self.clf = AdaBoostClassifier(base_estimator=DTF(max_depth=2), n_estimators=n_estimators)
 
     def train(self, X, Y):
         """ Trains classifier and prints average cross validation score """
