@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-from sklearn.datasets import load_iris
-=======
->>>>>>> evaluation
+
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier as DTF
 from sklearn.metrics import accuracy_score
