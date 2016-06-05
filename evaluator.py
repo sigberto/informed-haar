@@ -97,13 +97,14 @@ class Evaluator:
         txt_file_path = txt_file_path.replace('jpg', 'txt')
         with open(txt_file_path, 'wb') as f:
 		try:
-
-			line = 'bboxes: ' + ', '.join([x.tostring() for x in bboxes_str]) + \
-                		'\ngtruths: ' + ' '.join([x.tostring() for x in gtruths_str]) + \
+			line = 'bboxes: ' + ', '.join(['; '.join([str(y) for y in x]) for x in bboxes_str]) + \
+                		'\ngtruths: ' + ' '.join(['; '.join([str(y) for y in x]) for x in gtruths_str]) + \
                 		'\nn_FP: ' + str(n_FP) + \
                 		'\nn_misses: ' + str(n_misses)
             		f.write(line)
 		except Exception as e:
+			line = 'did not work'
+			f.write(line)
 			print e
 			#	print 'bboxes: ' + str(bboxes_str) 
 	

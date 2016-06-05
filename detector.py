@@ -57,7 +57,7 @@ class Detector:
         candidate_bbs = self._get_bounding_boxes(img_path)
         bbs = None
         if len(candidate_bbs) > 1:
-            bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.3)
+            bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.5)
         elif len(candidate_bbs) == 0:
             bbs = candidate_bbs
 
@@ -72,15 +72,15 @@ class Detector:
     
         
         img = cv2.imread(img_path)
-        oheight, owidth, channels = img.shape
+        raw_height, raw_width, channels = img.shape
 
-        if oheight/start_h > owidth/start_w:
+        if raw_height/start_h > raw_width/start_w:
             img = imutils.resize(img, width=min(start_w,img.shape[1]))
         else:
             img = imutils.resize(img, height=min(start_h,img.shape[0]))
             
         cv2.imwrite('resized_img.jpeg',img)
-        
+
         oheight, owidth, channels = img.shape
         win_h, win_w = self.window_size
 
@@ -114,6 +114,8 @@ class Detector:
 		    #score = 1
                     #=====[ Scale and store bounding box ]=====
                     scale = self.scaling_factor*it_num if it_num else 1
+		   
+		    scale *= float(oheight)/raw_height
                     count += 1
                     
                     if score > 0.5:
