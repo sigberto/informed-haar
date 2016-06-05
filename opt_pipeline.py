@@ -47,6 +47,7 @@ class Pipeline:
 
         # =====[ Use TemplateGenerator() to generate templates ]=====
         templates = pickle.load(open('top_templates_1000.p','r'))
+        templates = templates[:100]
 
         # =====[ Instantiate FeatureGenerator ]=====
         self.fg = FeatureGenerator(self.templates)

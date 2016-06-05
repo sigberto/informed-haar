@@ -1,7 +1,7 @@
 from opt_pipeline import Pipeline
 
 # data_file = 'top_100_ft_vectors.p'
-model_file = 'top_ft_classifier_1000'
+model_file = 'top_ft_classifier'
 
 pipe = Pipeline()
 # X, Y = pipe.extract_features(file_name=data_file)
