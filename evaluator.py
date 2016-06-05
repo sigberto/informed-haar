@@ -84,7 +84,7 @@ class Evaluator:
         n_FP = len(bboxes) - n_matches
         return n_FP, n_misses, n_matches
 
-    def save_image_results(self, img_path, bboxes, gtruths, n_FP, n_misses):
+    def save_image_results(self, img_path, bboxes, gtruths, n_FP, n_misses, prefix='', offset=0):
         if gtruths is None:
             gtruths_str = ''
         else:
@@ -95,6 +95,9 @@ class Evaluator:
             bboxes_str = list(bboxes)
         txt_file_path = img_path.replace('png', 'txt')
         txt_file_path = txt_file_path.replace('jpg', 'txt')
+	index = 21
+	txt_file_path = txt_file_path[:index] + prefix + txt_file_path[index:]
+	print 'Saving image at: ', txt_file_path
         with open(txt_file_path, 'wb') as f:
 		try:
 			line = 'bboxes: ' + ', '.join(['; '.join([str(y) for y in x]) for x in bboxes_str]) + \
@@ -109,28 +112,31 @@ class Evaluator:
 			#	print 'bboxes: ' + str(bboxes_str) 
 	
 
-    def evaluate(self):
+    def evaluate(self, path_prefix='', offset=0):
 	matches = []
-        for idx, img_path in enumerate(self.img_paths):
+        for idx, img_path in enumerate(self.img_paths[offset:]):
 	    try:
-		print '-----> Processing img: ', idx
+		print '-----> Processing img: ',offset +idx + 1,' path:',img_path
             	_, bboxes, = self.detector.detect_pedestrians(img_path)
 		n_FP, n_misses, n_matches = self.compare(bboxes, self.ground_truths.get(img_path, None))
 		matches.append(n_matches)
 		print 'n_Match: ', n_matches
 		print 'n_FP: ', n_FP
             	print 'n_misses: ', n_misses
-            	self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses)
+            	self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses, prefix=path_prefix, offset=offset)
             	self.n_FP += n_FP
             	self.n_misses += n_misses
-            	print 'Finished processing img: %d/%d' % (idx+1, len(self.img_paths))
+            	print 'Finished processing img: %d/%d' % (idx+offset+1, len(self.img_paths))
 	    except KeyboardInterrupt:
 		print 'FPPI: ', self.n_FP
 		print 'Misses: ', self.n_misses
 		print 'Total Matches: ', sum(matches)
-		print '%d/%d images processed' % (idx+1, len(self.img_paths))
+		print '%d/%d images processed' % (idx+offset+1, len(self.img_paths))
 		print 'Matches: ', matches
-		sys.exit() 
+		sys.exit()
+	    except Exception as e:
+		print e
+		print 'Could not Process image: ', idx + 1 
 	self.FPPI = 1.0*self.n_FP/len(self.img_paths) # rate of false positives per image
         self.miss_rate = 1.0*self.n_misses/self.n_ground_truths
 	print 'FPPI: ',self.FPPI

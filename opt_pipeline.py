@@ -3,7 +3,7 @@ import pickle
 from template_generator import TemplateGenerator
 from ChannelFeatures import ChannelFeatures
 from opt_feature_generator import FeatureGenerator
-# from classifier import Classifier
+from classifier import Classifier
 from detector import Detector
 from evaluator import Evaluator
 import cv2
@@ -46,8 +46,8 @@ class Pipeline:
             """
 
         # =====[ Use TemplateGenerator() to generate templates ]=====
-        templates = pickle.load(open('top_templates_1000.p','r'))
-        templates = templates[:100]
+        self.templates = pickle.load(open('top_templates_1000.p','r'))
+        self.templates = self.templates[:1000]
 
         # =====[ Instantiate FeatureGenerator ]=====
         self.fg = FeatureGenerator(self.templates)
@@ -57,7 +57,7 @@ class Pipeline:
         # =====[ Create input matrix ]=====
 
         print 'Total images to process: ', len(pos_images) + len(neg_images)
-        X = np.zeros((len(pos_images) + len(neg_images), len(self.templates) * self.cf.N_CHANNELS))
+        X = np.zeros((len(pos_images) + len(neg_images), len(self.templates)))
         X = self._get_feature_matrix(X, pos_images, 0)
         X = self._get_feature_matrix(X, neg_images, len(pos_images) - 1)
         # X = pickle.load(open('backup_X.p','rb'))
@@ -75,7 +75,7 @@ class Pipeline:
 
         return X, Y
 
-    def train(self, X, Y, num_features=None, num_estimators=100, max_depth=2, model_name=None):
+    def train(self, X, Y, num_features=None, num_estimators=500, max_depth=2, model_name=None):
         """
             Trains boosted trees in order to calculate feature importance and select top num_features
     
@@ -108,9 +108,9 @@ class Pipeline:
             pickle.dump(self.clf, open(model_name, 'wb'))
     
         # =====[ Plot feature weights ]=====
-        self.clf.plot_ft_weights('feature_weights.png')
+        #self.clf.plot_ft_weights('feature_weights.png')
 
-    def detect(self, clf=None, templates=None):
+    def detect(self, output_file_prefix='', offset=0, scaling_factor = 1.2, scaling_iters=3, nms=0.5, clf=None, templates=None):
         
         #=====[ Load our classifier and templates ]=====
         if clf:
@@ -122,19 +122,20 @@ class Pipeline:
             templates = pickle.load(open(templates))
         else:
             templates = pickle.load(open('top_templates_1000.p','r'))
+	    templates = templates[:1000]
 
 
         #=====[ Instantiate our feature generator ]=====
         fg = FeatureGenerator(templates)
 
         #=====[ Instantiate our detector ]=====
-        self.detector = Detector(clf.clf, fg)
+        self.detector = Detector(clf.clf, fg,scaling_factor=scaling_factor,scaling_iters=scaling_iters, nms=nms)
 
         #=====[ Instantiate our evaluator ]=====
         evaluator = Evaluator('INRIAPerson/Test', self.detector)
 
         #=====[ Evaluate ]=====
-        FPPI, miss_rate = evaluator.evaluate()
+        FPPI, miss_rate = evaluator.evaluate(output_file_prefix,offset)
 
         print 'FPPI: {}\nMiss rate: {}'.format(FPPI, miss_rate)
 

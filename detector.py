@@ -13,7 +13,7 @@ class Detector:
         containing a pedestrian 
     """
 
-    def __init__(self, clf, fg, window_size=(120,60), scaling_factor=1.2, scaling_iters=3, window_step=6):
+    def __init__(self, clf, fg, window_size=(120,60), scaling_factor=1.2, scaling_iters=3, window_step=6,nms=0.5):
         """ Instantiates the detector class:
         
             Input: weight_indices, weights, window_size, scaling_factor, scaling_iters, window_step
@@ -36,6 +36,7 @@ class Detector:
 
         self.cf = ChannelFeatures()
         self.fg = fg
+	self.nms = nms
 
     def detect_pedestrians(self, img_path):
         """
@@ -57,7 +58,7 @@ class Detector:
         candidate_bbs = self._get_bounding_boxes(img_path)
         bbs = None
         if len(candidate_bbs) > 1:
-            bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=0.5)
+            bbs = nms.non_max_suppression(np.asarray(candidate_bbs), overlapThresh=self.nms)
         elif len(candidate_bbs) == 0:
             bbs = candidate_bbs
 
