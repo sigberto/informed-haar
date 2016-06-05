@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 from template_generator import TemplateGenerator
 from ChannelFeatures import ChannelFeatures
-from feature_generator import FeatureGenerator
+from opt_feature_generator import FeatureGenerator
 # from classifier import Classifier
 from detector import Detector
 from evaluator import Evaluator
@@ -111,7 +111,7 @@ class Pipeline:
     #     self.clf.plot_ft_weights('feature_weights.png')
 
     def detect(self, clf=None):
-        clf = pickle.load(open('top_ft_classifier_800.p', 'r'))
+        clf = pickle.load(open('top_ft_classifier_800', 'r'))
         templates = pickle.load(open('top_templates_1000.p','r'))
         fg = FeatureGenerator(templates)
         self.detector = Detector(clf.clf, fg)

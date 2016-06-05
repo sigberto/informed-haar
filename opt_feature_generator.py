@@ -21,13 +21,15 @@ class FeatureGenerator:
 
         for indx, t in enumerate(self.templates):
 
+            k = t[1]
+            t = t[0]
 
             x, y, size, W = t
             w, h = size
 
-            for k in range(k_channels):
-                cell_feats = np.copy(cfeats[y:y + h, x:x + w, k])
-                self.features.append(np.sum(np.multiply(cell_feats, W)))
+            # for k in range(k_channels):
+            cell_feats = np.copy(cfeats[y:y + h, x:x + w, k])
+            self.features.append(np.sum(np.multiply(cell_feats, W)))
                 # self.feature_info.append((x, y, size, k))
 
             # if indx + 1 % 100 == 0:
