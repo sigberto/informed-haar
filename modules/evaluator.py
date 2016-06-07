@@ -154,9 +154,9 @@ class Evaluator:
         num_images = num_images if num_images else len(self.img_paths)
 
         num_processed = 0
-	num_people = 0
-	num_FP = 0
-	num_misses = 0
+    	num_people = 0
+    	num_FP = 0
+    	num_misses = 0
 
         for idx, img_path in enumerate(self.img_paths[:num_images]):
 	    try:
