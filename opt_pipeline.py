@@ -4,6 +4,7 @@ from template_generator import TemplateGenerator
 from ChannelFeatures import ChannelFeatures
 from opt_feature_generator import FeatureGenerator
 from classifier import Classifier
+from old_detector import Detector as old_Detector
 from detector import Detector
 from evaluator import Evaluator
 import cv2
@@ -30,7 +31,7 @@ class Pipeline:
         self.cf = ChannelFeatures()
         self.detector = None
 
-    def extract_features(self, dir_info=('../train_us', 'pos.lst', 'neg.lst'), file_name=None):
+    def extract_features(self, num_ft=100, dir_info=('../train_us', 'pos.lst', 'neg.lst'), file_name=None):
         """
             Extracts features from directory provided
 
@@ -47,7 +48,7 @@ class Pipeline:
 
         # =====[ Use TemplateGenerator() to generate templates ]=====
         self.templates = pickle.load(open('top_templates_1000.p','r'))
-        self.templates = self.templates[:1000]
+        self.templates = self.templates[:num_ft]
 
         # =====[ Instantiate FeatureGenerator ]=====
         self.fg = FeatureGenerator(self.templates)
@@ -110,7 +111,7 @@ class Pipeline:
         # =====[ Plot feature weights ]=====
         #self.clf.plot_ft_weights('feature_weights.png')
 
-    def detect(self, output_file_prefix='', offset=0, scaling_factor = 1.2, scaling_iters=3, nms=0.5, clf=None, templates=None):
+    def detect(self, output_file_prefix='', num_ft=100, offset=0, scaling_factor = 1.2, scaling_iters=3, nms=0.5, clf=None, templates=None, old_detector=False):
         
         #=====[ Load our classifier and templates ]=====
         if clf:
@@ -122,14 +123,18 @@ class Pipeline:
             templates = pickle.load(open(templates))
         else:
             templates = pickle.load(open('top_templates_1000.p','r'))
-	    templates = templates[:1000]
+	    templates = templates[:num_ft]
 
 
         #=====[ Instantiate our feature generator ]=====
         fg = FeatureGenerator(templates)
 
         #=====[ Instantiate our detector ]=====
-        self.detector = Detector(clf.clf, fg,scaling_factor=scaling_factor,scaling_iters=scaling_iters, nms=nms)
+	if old_detector:
+        	self.detector = old_Detector(clf.clf, fg,scaling_factor=scaling_factor,scaling_iters=scaling_iters, nms=nms)
+	else:
+
+        	self.detector = Detector(clf.clf, fg,scaling_factor=scaling_factor,scaling_iters=scaling_iters, nms=nms)
 
         #=====[ Instantiate our evaluator ]=====
         evaluator = Evaluator('INRIAPerson/Test', self.detector)
@@ -139,20 +144,21 @@ class Pipeline:
 
         print 'FPPI: {}\nMiss rate: {}'.format(FPPI, miss_rate)
 
-    def get_stats(self, path_prefix='', num_images=None):
+    def get_stats(self, output_file_prefix='', num_images=100):
         """ Reports number of people, matches, misses, and false positives per experiment """
 
         #=====[ Instantiate our evaluator ]=====
         evaluator = Evaluator('INRIAPerson/Test')
 
-        num_people, num_hits, num_misses, num_FP, num_processed = evaluator.aggregate_stats(path_prefix, num_images):
+        num_people, num_hits, num_misses, num_FP, num_processed = evaluator.aggregate_stats(output_file_prefix, num_images)
 
-        print '-----> Stats for ' + path_prefix + ' ( ' + str(num_processed) + '/' + str(num_images) +' processed) :\n\n'
+        print '-----> Stats for ' + output_file_prefix + ' ( ' + str(num_processed) + '/' + str(num_images) +' processed) :\n\n'
         print 'Miss Rate: ' + str(float(num_misses)/num_people)
         print 'False Positives: ' + str(num_FP)
-        print 'Hits: ' + str(num_hits) + '\n'
-        print 'Misses: ' + str(num_misses) + '\n'
-        print 'Total People: ' + str(num_people) + '\n'
+	print 'FPPI: ' + str(float(num_FP)/num_images)
+        print 'Hits: ' + str(num_hits) 
+        print 'Misses: ' + str(num_misses) 
+        print 'Total People: ' + str(num_people) 
 
 
 

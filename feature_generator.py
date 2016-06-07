@@ -22,7 +22,7 @@ class FeatureGenerator:
             x, y, size, W = t
             w, h = size
 
-            for k in range(k_channels):
+            for k in range(11):
                 cell_feats = np.copy(cfeats[y:y + h, x:x + w, k])
                 self.features.append(np.sum(np.multiply(cell_feats, W)))
                 # self.feature_info.append((x, y, size, k))
