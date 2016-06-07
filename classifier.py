@@ -19,7 +19,7 @@ class Classifier:
         """ Instantiates adaboost classifier """
         #=====[ loading pretrained classifier object ]=====
         if clf:
-	    self.clf = pickle.load(open('BoostedTreeclassifier_small.p','rb')).clf
+	    self.clf = pickle.load(open(clf,'rb')).clf
 	    print self.clf
         else:
         #=====[ Initialize new classifier ]=====
@@ -63,6 +63,7 @@ class Classifier:
         plt.savefig(file_name)
 
 
+
 	def predict(self, img_paths): 
 		""" 
 			Tests classifier against given image img_paths
@@ -73,10 +74,7 @@ class Classifier:
 			4) classifies image 
 		"""
 	
-		#=====[ Generate templates ]=====		
-		tg = TemplateGenerator()
-		tg.generate_sizes(w_max=3,h_max=2)
-		templates = tg.generate_templates()
+		#=====[ Instantiate Channel Features ]=====		
 		cf = ChannelFeatures()
 
 		#=====[ Instantiate FeatureGenerator ]=====

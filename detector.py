@@ -62,7 +62,7 @@ class Detector:
         elif len(candidate_bbs) == 0:
             bbs = candidate_bbs
 
-        return candidate_bbs, bbs
+        return (candidate_bbs, bbs)
 
     def _get_bounding_boxes(self, img_path, start_h=120, start_w=60):
         """ 
@@ -74,12 +74,17 @@ class Detector:
         
         img = cv2.imread(img_path)
         raw_height, raw_width, channels = img.shape
+	
 
-        if raw_height/start_h > raw_width/start_w:
-            img = imutils.resize(img, width=min(start_w,img.shape[1]))
-        else:
-            img = imutils.resize(img, height=min(start_h,img.shape[0]))
-            
+        #if raw_height/start_h > raw_width/start_w:
+         #   img = imutils.resize(img, width=min(start_w,img.shape[1]))
+        #else:
+         #   img = imutils.resize(img, height=min(start_h,img.shape[0]))
+	#new_height = max(start_h, int(float(raw_height)/3))
+	new_height = 480
+	o_img = img
+	img = imutils.resize(img, height=new_height)          
+  
         cv2.imwrite('resized_img.jpeg',img)
 
         oheight, owidth, channels = img.shape
@@ -92,9 +97,12 @@ class Detector:
 
             #=====[ Scale image if not on first iteration ]=====
             if it_num > 0:
-                img = cv2.resize(img,(int(it_num*self.scaling_factor*owidth), int(it_num*self.scaling_factor*oheight)))
-
-            height, width, _ = img.shape
+		#print 'img size before reshape:', img.shape
+                img = cv2.resize(o_img,(int(owidth/float(self.scaling_factor**it_num)), int(oheight/float(self.scaling_factor**it_num))))
+		#print 'img size after reshape:', img.shape
+		#print 'scaling factor:',self.scaling_factor
+		#print 'it_num', it_num
+            height, width, _ = img.shape 
 
             y_range = (height - win_h)/self.window_step + 1
             x_range = (width - win_w)/self.window_step + 1
@@ -114,9 +122,9 @@ class Detector:
                     score = self.clf.predict_proba([feature_vec])[0,1]
 		    #score = 1
                     #=====[ Scale and store bounding box ]=====
-                    scale = self.scaling_factor*it_num if it_num else 1
+                    scale = 1/float(self.scaling_factor**it_num) if it_num else 1
 		   
-		    scale *= float(oheight)/raw_height
+		    scale *= float(new_height)/raw_height
                     count += 1
                     
                     if score > 0.5:

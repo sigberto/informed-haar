@@ -82,7 +82,7 @@ class Evaluator:
                 matched_bbox[highest_overlap_pair[1]] = 1
         n_misses = len(gtruths) - n_matches
         n_FP = len(bboxes) - n_matches
-        return n_FP, n_misses, n_matches
+        return (n_FP, n_misses, n_matches)
 
     def save_image_results(self, img_path, bboxes, gtruths, n_FP, n_misses, prefix='', offset=0):
         if gtruths is None:
@@ -100,13 +100,13 @@ class Evaluator:
         index = 21
         txt_file_path = txt_file_path[:index] + prefix + txt_file_path[index:]
         print 'Saving image at: ', txt_file_path
-            with open(txt_file_path, 'wb') as f:
+        with open(txt_file_path, 'wb') as f:
             try:
                 line = 'bboxes: ' + ', '.join(['; '.join([str(y) for y in x]) for x in bboxes_str]) + \
                             '\ngtruths: ' + ' '.join(['; '.join([str(y) for y in x]) for x in gtruths_str]) + \
                             '\nn_FP: ' + str(n_FP) + \
                             '\nn_misses: ' + str(n_misses)
-                        f.write(line)
+                f.write(line)
             except Exception as e:
                 line = 'did not work'
                 f.write(line)
@@ -118,27 +118,27 @@ class Evaluator:
         matches = []
         for idx, img_path in enumerate(self.img_paths[offset:]):
             try:
-            print '-----> Processing img: ',offset +idx + 1,' path:',img_path
-                    _, bboxes, = self.detector.detect_pedestrians(img_path)
-            n_FP, n_misses, n_matches = self.compare(bboxes, self.ground_truths.get(img_path, None))
-            matches.append(n_matches)
-            print 'n_Match: ', n_matches
-            print 'n_FP: ', n_FP
-                    print 'n_misses: ', n_misses
-                    self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses, prefix=path_prefix, offset=offset)
-                    self.n_FP += n_FP
-                    self.n_misses += n_misses
-                    print 'Finished processing img: %d/%d' % (idx+offset+1, len(self.img_paths))
+		    print '-----> Processing img: ',offset +idx + 1,' path:',img_path
+		    _, bboxes = self.detector.detect_pedestrians(img_path)
+		    n_FP, n_misses, n_matches = self.compare(bboxes, self.ground_truths.get(img_path, None))
+		    matches.append(n_matches)
+		    print 'n_Match: ', n_matches
+		    print 'n_FP: ', n_FP
+		    print 'n_misses: ', n_misses
+		    self.save_image_results(img_path, bboxes, self.ground_truths.get(img_path, None), n_FP, n_misses, prefix=path_prefix, offset=offset)
+		    self.n_FP += n_FP
+		    self.n_misses += n_misses
+		    print 'Finished processing img: %d/%d' % (idx+offset+1, len(self.img_paths))
             except KeyboardInterrupt:
-            print 'FPPI: ', self.n_FP
-            print 'Misses: ', self.n_misses
-            print 'Total Matches: ', sum(matches)
-            print '%d/%d images processed' % (idx+offset+1, len(self.img_paths))
-            print 'Matches: ', matches
-            sys.exit()
+		    print 'FPPI: ', self.n_FP
+		    print 'Misses: ', self.n_misses
+		    print 'Total Matches: ', sum(matches)
+		    print '%d/%d images processed' % (idx+offset+1, len(self.img_paths))
+		    print 'Matches: ', matches
+		    sys.exit()
             except Exception as e:
-            print e
-            print 'Could not Process image: ', offset +idx + 1 
+		    print e
+		    print 'Could not Process image: ', offset +idx + 1 
         self.FPPI = 1.0*self.n_FP/len(self.img_paths) # rate of false positives per image
         self.miss_rate = 1.0*self.n_misses/self.n_ground_truths
         print 'FPPI: ',self.FPPI
@@ -154,49 +154,74 @@ class Evaluator:
         num_images = num_images if num_images else len(self.img_paths)
 
         num_processed = 0
-        
+	num_people = 0
+	num_FP = 0
+	num_misses = 0
+
         for idx, img_path in enumerate(self.img_paths[:num_images]):
+	    try:
+		    added = False
 
-            added = False
+		    #=====[ Formulate new image path based on prefix ]=====
+		    txt_file_path = img_path.replace('png', 'txt')
+		    txt_file_path = txt_file_path.replace('jpg', 'txt')
+		    index = 21 # Hard coded index for directory to image paths
+		    txt_file_path = txt_file_path[:index] + path_prefix + txt_file_path[index:]
 
-            #=====[ Formulate new image path based on prefix ]=====
-            txt_file_path = img_path.replace('png', 'txt')
-            txt_file_path = txt_file_path.replace('jpg', 'txt')
-            index = 21 # Hard coded index for directory to image paths
-            txt_file_path = txt_file_path[:index] + path_prefix + txt_file_path[index:]
+		    #=====[ Read lines from stat file ]=====
+		    with open(txt_file_path) as to_read:
+			lines = to_read.readlines()
 
-            #=====[ Read lines from stat file ]=====
-            with open(text_file_path, 'r') as to_read:
-                lines = to_read.readlines()
+		
+		    cur_num_people = 0
+		    cur_num_misses = 0
+		    cur_num_FP = 0
 
-            #=====[ Iterate through lines and pull appropriate stat from each ]=====
-            for line in lines:
+		    #=====[ Iterate through lines and pull appropriate stat from each ]=====
+		    for line in lines:
 
-                try:
+			try:
 
-                    #=====[ Calculates number of people in frame by looking at the numger of ground truth bounding boxes
-                    #=====[ Takes total numbers in ground truth line and divides by 4 (4 parameters for each bounding box)
-                    if 'g_truths:' in line:
-                        num_people = len(re.split(' |;',line[len('g_truths:')]))/4
-                    
-                    if 'n_FP:' in line:
-                        num_FP = int(line[len('n_FP:')].strip())
+			    #=====[ Calculates number of people in frame by looking at the numger of ground truth bounding boxes
+			    #=====[ Takes total numbers in ground truth line and divides by 4 (4 parameters for each bounding box)
+			    if 'gtruths:' in line:
+				gtruths = [x for x in re.split(' |;', line) if x]
+				print gtruths
+				print len(gtruths)
+				print len(gtruths)/4
+				cur_num_people = len(gtruths)/4
+			    
+			    if 'n_FP:' in line:
+				cur_num_FP = int(line.split(':')[1].strip())
 
-                    if 'n_misses:' in line:
-                        num_misses = int(line[len('n_misses:')].strip())
-                        num_processed += 1
-                        added = True
+			    if 'n_misses:' in line:
+				cur_num_misses = int(line.split(':')[1].strip())
+				num_processed += 1
+				added = True
 
-                except Exception as e:
+			except Exception as e:
 
-                    #=====[ Decrement our counter if we had wrongfully incremented it after encountering 'num_misses' in a line ]=====
-                    num_processed -= 1 if added else 0
+			    #=====[ Decrement our counter if we had wrongfully incremented it after encountering 'num_misses' in a line ]=====
+			    num_processed -= 1 if added else 0
+			    cur_num_people = 0
+		 	    cur_num_FP = 0
+			    cur_num_misses = 0
+			    print e
+			    print '-----> Could not find stats in image file: ', idx + 1
+			    continue
 
-                    print e
-                    print '-----> Could not aggregate image: ', idx + 1
+		    num_people += cur_num_people
+		    num_misses += cur_num_misses
+		    num_FP += cur_num_FP
 
+		#=====[ Try Catch around each image in case one is corrupted, non-existant, etc ]=====
+	    except Exception as e:
+	    	print e
+		print '-----> Could not aggregate stats for image: ', idx + 1
+		continue
 
-            return (num_people, num_people - num_misses, num_misses, num_FP, num_processed)
+	    print 'TOTAL NUMBER OF PEOPLE', num_people
+	return (num_people, num_people - num_misses, num_misses, num_FP, num_processed)
 
 
 
