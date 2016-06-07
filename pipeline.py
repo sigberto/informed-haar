@@ -1,3 +1,4 @@
+
 from os import path
 import numpy as np
 import pickle
@@ -13,10 +14,10 @@ import matplotlib.image as mpimg
 
 from template_generator import TemplateGenerator
 from ChannelFeatures import ChannelFeatures
-from feature_generator import FeatureGenerator
+from feature_gen import FeatureGenerator
 from classifier import Classifier
 from linear_detector import Detector as LinearScaleDetector
-from detector import Detector
+from exp_detector import Detector
 from evaluator import Evaluator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import test_classification
@@ -278,9 +279,15 @@ class Pipeline:
 		for box in bbs:
 			cv2.rectangle(img,(int(box[2]*scale),int(box[1]*scale)),(int((box[2]+box[4])*scale),int((box[1]+box[3])*scale)),(0,255,0),2)    
 
-		cv2.imwrite('detected_'+img_path,img)
+		#=====[ Prepend detected to image ]=====
+		if '/' in img_path:
+			path = 'detected_'+img_path.split('/')[1]
+			cv2.imwrite(path,img)
+		else:
+			path = 'detected_' + img_path
+			cv2.imwrite(path, img)
 
-		to_show = mpimg.imread('detected_'+img_path)
+		to_show = mpimg.imread(path)
 		plt.imshow(to_show)
 
 

@@ -1,9 +1,8 @@
 import numpy as np
 import cv2
 import imutils
-
 from ChannelFeatures import ChannelFeatures
-from feature_generator import FeatureGenerator
+from feature_gen import FeatureGenerator
 import nms
 
 
@@ -112,7 +111,7 @@ class Detector:
                     feature_vec = np.asarray(self.fg.generate_features(cfeats[y:y+win_h,x:x+win_w]))
                     
                     score = self.clf.predict_proba([feature_vec])[0,1]
-		    #score = 1
+
                     #=====[ Scale and store bounding box ]=====
                     scale = self.scaling_factor*it_num if it_num else 1
 		   
@@ -123,7 +122,7 @@ class Detector:
                         bounding_boxes.append([score, int(y_pix/scale), int(x_pix/scale), int(win_h/scale), int(win_w/scale)])
 
 
-            print 'Went through %d total candidate BBs' %(count)
+            print 'Went through %d candidate BBs' %(count)
         return np.matrix(bounding_boxes)
         
     def _calculate_total_iters(self, img):

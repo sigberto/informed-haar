@@ -3,7 +3,7 @@ import os
 import re
 import cv2
 import numpy as np
-from detector import Detector
+from exp_detector import Detector
 
 class Evaluator:
 

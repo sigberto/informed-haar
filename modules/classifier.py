@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import imutils
 from ChannelFeatures import ChannelFeatures
-from feature_generator import FeatureGenerator
+from feature_gen import FeatureGenerator
 from template_generator import TemplateGenerator
 
 
